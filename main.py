@@ -43,19 +43,24 @@ def index():
 @app.route("/add", methods=["GET", "POST"])
 def add():
     if request.method == "POST":
+        # Connect to the database
         with sqlite3.connect("subscriptions.db", detect_types=sqlite3.PARSE_DECLTYPES) as conn:
             cursor = conn.cursor()
 
+            # Retrieve the product and expiry date from the form data
             product = request.form["product"]
             expiry_date = request.form["expiry_date"]
 
             # Insert the new subscription into the database
             cursor.execute(
                 "INSERT INTO subscriptions (product, expiry_date) VALUES (?, ?)", (product, expiry_date))
+            # Commit the changes to the database
             conn.commit()
 
+        # Redirect the user to the index page
         return redirect(url_for("index"))
     else:
+        # Render the add.html template
         return render_template("add.html")
 
 
@@ -106,6 +111,5 @@ def delete(id):
 
 
 if __name__ == "__main__":
-    import datetime
 
     app.run(debug=True)
