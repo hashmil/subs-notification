@@ -1,0 +1,19 @@
+<html>
+  <head>
+    <title>Add Subscription</title>
+  </head>
+  <body>
+    <h1>Add Subscription</h1>
+    <form action="{{ url_for('add') }}" method="post">
+      <p>
+        <label for="product">Product:</label>
+        <input type="text" id="product" name="product" />
+      </p>
+      <p>
+        <label for="expiry_date">Expiry Date:</label>
+        <input type="date" id="expiry_date" name="expiry_date" />
+      </p>
+      <input type="submit" value="Add Subscription" />
+    </form>
+  </body>
+</html>

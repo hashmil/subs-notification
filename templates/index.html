@@ -1,0 +1,44 @@
+<html>
+  <head>
+    <title>Subscription Manager</title>
+  </head>
+  <body>
+    <h1>Expiring Subscriptions</h1>
+    <table>
+      <tr>
+        <th>Product</th>
+        <th>Expiry Date</th>
+        <th>Actions</th>
+      </tr>
+      {% for subscription in expiring_subscriptions %}
+      <tr>
+        <td>{{ subscription[1] }}</td>
+        <td>{{ subscription[2] }}</td>
+        <td>
+          <a href="{{ url_for('edit', id=subscription[0]) }}">Edit</a>
+          <a href="{{ url_for('delete', id=subscription[0]) }}">Delete</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    <h1>Remaining Subscriptions</h1>
+    <table>
+      <tr>
+        <th>Product</th>
+        <th>Expiry Date</th>
+        <th>Actions</th>
+      </tr>
+      {% for subscription in remaining_subscriptions %}
+      <tr>
+        <td>{{ subscription[1] }}</td>
+        <td>{{ subscription[2] }}</td>
+        <td>
+          <a href="{{ url_for('edit', id=subscription[0]) }}">Edit</a>
+          <a href="{{ url_for('delete', id=subscription[0]) }}">Delete</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    <a href="{{ url_for('add') }}">Add Subscription</a>
+  </body>
+</html>

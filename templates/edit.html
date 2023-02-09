@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Edit Subscription</title>
+  </head>
+  <body>
+    <h1>Edit Subscription</h1>
+    <form action="" method="post">
+      <label for="product">Product:</label>
+      <input
+        type="text"
+        id="product"
+        name="product"
+        value="{{ subscription[1] }}"
+      />
+
+      <label for="expiry_date">Expiry Date:</label>
+      <input
+        type="date"
+        id="expiry_date"
+        name="expiry_date"
+        value="{{ subscription[2] }}"
+      />
+
+      <input type="submit" value="Save Changes" />
+    </form>
+  </body>
+</html>
