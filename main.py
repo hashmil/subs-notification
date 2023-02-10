@@ -1,25 +1,12 @@
-import os
-import smtplib
-import configparser
 import sqlite3
 import datetime
 from flask import Flask, request, render_template, redirect, url_for
 import queue
 import threading
-import ssl
-from datetime import datetime, timedelta
-from configparser import ConfigParser
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import schedule
-import time
 
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
-
-# Load configuration from config.ini file
-config = configparser.ConfigParser()
-config.read("config.ini")
 
 # Create a queue to store database connections
 connection_pool = queue.Queue()
@@ -116,63 +103,14 @@ def delete(id):
 
     return redirect(url_for("index"))
 
-# Email notification
 
-
-def send_email(subject, body, recipient_email, sender_email, password):
-    message = MIMEMultipart()
-    message["From"] = sender_email
-    message["To"] = recipient_email
-    message["Subject"] = subject
-    message.attach(MIMEText(body, "plain"))
-
-    context = ssl.create_default_context()
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-        server.login(sender_email, password)
-        server.sendmail(sender_email, recipient_email, message.as_string())
-
-
-def check_and_send_email():
-    # Load the email configuration from the config.ini file
-    config = ConfigParser()
-    config.read("config.ini")
-    sender_email = config.get("email", "sender_email")
-    password = config.get("email", "sender_password")
-    recipient_email = config.get("email", "recipient_email")
-
-    with sqlite3.connect("subscriptions.db", detect_types=sqlite3.PARSE_DECLTYPES) as conn:
-        cursor = conn.cursor()
-
-        # Get the subscriptions expiring in the next 7 days
-        expiring_subscriptions = cursor.execute(
-            "SELECT * FROM subscriptions WHERE expiry_date BETWEEN date('now') AND date('now', '+7 days')").fetchall()
-
-        # Only send an email if there are any subscriptions expiring in the next 7 days
-        if expiring_subscriptions:
-            body = "The following subscriptions will be expiring within the next 7 days:\n\n"
-            for subscription in expiring_subscriptions:
-                body += f"Product: {subscription[1]}\nExpiry Date: {subscription[2]}\n\n"
-
-            subject = "Upcoming Subscription Expirations"
-            send_email(subject, body, recipient_email, sender_email, password)
-            print("An email was sent with the list of upcoming expiring subscriptions.")
-        else:
-            print("No expiring subscriptions found within the next 7 days.")
-
-
-# def run_every_day():
-#     check_and_send_email()
+def run_threaded(function):
+    # Running the function in a separate thread
+    thread = threading.Thread(target=function)
+    thread.start()
 
 
 if __name__ == "__main__":
 
-    app.run(debug=True)
-    check_and_send_email()
-
-    # # Schedule the run_every_day function to run every day at 12:00 AM
-    # schedule.every().day.at("23:11").do(run_every_day)
-
-    # # Keep the program running and check for pending tasks every second
-    # while True:
-    #     schedule.run_pending()
-    #     time.sleep(1)
+    # Start the Flask app in a separate thread
+    run_threaded(app.run(debug=True))
