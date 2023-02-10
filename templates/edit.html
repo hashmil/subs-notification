@@ -1,28 +1,33 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Edit Subscription</title>
-  </head>
-  <body>
-    <h1>Edit Subscription</h1>
+{% extends "layout.html" %} {% block title %}Edit - Subscription Manager
+{%endblock %} {% block content %}
+<div class="d-flex justify-content-center">
+<div class="card mt-5 col-md-5">
+  <div class="card-body">
+    <h5>Edit Subscription</h5>
+    <div class="mb-3">
     <form action="" method="post">
-      <label for="product">Product:</label>
+      <label for="product" class="form-label">Product:</label>
       <input
         type="text"
         id="product"
         name="product"
         value="{{ subscription[1] }}"
+        class="form-control text-bg-light"
       />
-
-      <label for="expiry_date">Expiry Date:</label>
+    </div>
+      <label for="expiry_date" class="form-label">Expiry Date:</label>
       <input
         type="date"
         id="expiry_date"
         name="expiry_date"
         value="{{ subscription[2] }}"
+        class="form-control text-bg-light"
       />
 
-      <input type="submit" value="Save Changes" />
+      <input class="btn btn-primary mt-3" type="submit" value="Save Changes" />
     </form>
-  </body>
-</html>
+  </div>
+</div>
+</div>
+
+{% endblock %}
