@@ -15,6 +15,9 @@ from email.mime.multipart import MIMEMultipart
 config = configparser.ConfigParser()
 config.read("config.ini")
 
+# Database path
+database_path = "database/subscriptions.db"
+
 # Create a queue to store database connections
 connection_pool = queue.Queue()
 
@@ -40,7 +43,7 @@ def check_and_send_email():
     password = config.get("email", "sender_password")
     recipient_email = config.get("email", "recipient_email")
 
-    with sqlite3.connect("subscriptions.db", detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+    with sqlite3.connect(database_path, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         cursor = conn.cursor()
 
         # Get the subscriptions expiring in the next 7 days
