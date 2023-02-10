@@ -10,10 +10,30 @@ app = Flask(__name__)
 # Create a queue to store database connections
 connection_pool = queue.Queue()
 
+# Database path
+database_path = "database/subscriptions.db"
+
+# Create a database if it doesnt exist
+
+
+def create_database():
+    conn = sqlite3.connect(database_path)
+    cursor = conn.cursor()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS subscriptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product TEXT NOT NULL,
+        expiry_date TEXT NOT NULL
+    )
+    """)
+    conn.commit()
+    conn.close()
+
 
 @app.route("/")
 def index():
-    with sqlite3.connect("subscriptions.db", detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+    create_database()
+    with sqlite3.connect(database_path, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         cursor = conn.cursor()
 
         # Retrieve all subscriptions from the database
@@ -37,17 +57,28 @@ def index():
 def add():
     if request.method == "POST":
         # Connect to the database
-        with sqlite3.connect("subscriptions.db", detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+        with sqlite3.connect(database_path, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
             cursor = conn.cursor()
 
             # Retrieve the product and expiry date from the form data
             product = request.form["product"]
-            expiry_date = request.form["expiry_date"]
+            expiry_date_str = request.form["expiry_date"]
+
+            # Check if the date input is not an empty string
+            if not expiry_date_str:
+                return render_template("add.html", error="Expiry date cannot be empty.")
+
+            # Check if the date input is valid
+            try:
+                expiry_date = datetime.strptime(
+                    expiry_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                # If the date is not in the correct format, return an error message
+                return render_template("add.html", error="Invalid date format. Please use YYYY-MM-DD.")
 
             # Insert the new subscription into the database
             cursor.execute(
                 "INSERT INTO subscriptions (product, expiry_date) VALUES (?, ?)", (product, expiry_date))
-            # Commit the changes to the database
             conn.commit()
 
         # Redirect the user to the index page
@@ -59,17 +90,20 @@ def add():
 
 @app.route("/edit/<int:id>", methods=["GET", "POST"])
 def edit(id):
-    with sqlite3.connect("subscriptions.db", detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+    with sqlite3.connect(database_path, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         cursor = conn.cursor()
 
         if request.method == "POST":
             try:
                 product = request.form["product"]
-                expiry_date = request.form["expiry_date"]
+                expiry_date_str = request.form["expiry_date"]
+
+                if not expiry_date_str:
+                    return render_template("edit.html", subscription=subscription, error="Expiry date is required.")
 
                 # Ensure the expiry date is in the correct format
                 expiry_date = datetime.strptime(
-                    expiry_date, "%Y-%m-%d").date().strftime("%Y-%m-%d")
+                    expiry_date_str, "%Y-%m-%d").date().strftime("%Y-%m-%d")
 
                 # Update the subscription in the database
                 cursor.execute(
@@ -80,6 +114,7 @@ def edit(id):
             except Exception as e:
                 print("Error updating subscription: ", e)
                 return "Error updating subscription", 500
+
         else:
             # Retrieve the subscription from the database
             cursor.execute("SELECT * FROM subscriptions WHERE id=?", (id,))
@@ -93,7 +128,7 @@ def edit(id):
 
 @app.route("/delete/<int:id>")
 def delete(id):
-    with sqlite3.connect("subscriptions.db", detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+    with sqlite3.connect(database_path, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         cursor = conn.cursor()
 
         # Delete the subscription from the database

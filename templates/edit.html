@@ -21,7 +21,9 @@
             name="expiry_date"
             value="{{ subscription[2] }}"
             class="form-control text-bg-light" />
-
+          {% if error %}
+          <p class="text-danger">{{ error }}</p>
+          {% endif %}
           <input
             class="btn btn-primary mt-3"
             type="submit"
