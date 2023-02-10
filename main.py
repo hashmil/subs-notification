@@ -1,9 +1,8 @@
 import sqlite3
 import datetime
-from flask import Flask, request, render_template, redirect, url_for
 import queue
 import threading
-
+from flask import Flask, request, render_template, redirect, url_for
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
