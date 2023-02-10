@@ -147,4 +147,4 @@ def run_threaded(function):
 if __name__ == "__main__":
 
     # Start the Flask app in a separate thread
-    run_threaded(app.run(debug=True))
+    run_threaded(app.run(debug=True, host='0.0.0.0', port=3000))
