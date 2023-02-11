@@ -1,6 +1,7 @@
 {% extends "layout.html" %} {% block content %}
 
 <h5 class="pt-5">Expiring Subscriptions</h5>
+{% if expiring_subscriptions %}
 <table class="table table-hover">
   <tr>
     <th class="col-6">Product</th>
@@ -14,19 +15,26 @@
     <td class="text-end">
       <a
         class="btn btn-outline-primary btn-sm"
-        href="{{ url_for('edit', id=subscription[0]) }}"
-        ><i class="bi bi-pencil-square"></i
-      ></a>
+        href="{{ url_for('edit', id=subscription[0]) }}">
+        <i class="bi bi-pencil-square"></i>
+      </a>
       <a
         class="btn btn-outline-danger btn-sm"
-        href="{{ url_for('delete', id=subscription[0]) }}"
-        ><i class="bi bi-trash"></i
-      ></a>
+        href="{{ url_for('delete', id=subscription[0]) }}">
+        <i class="bi bi-trash"></i>
+      </a>
     </td>
   </tr>
   {% endfor %}
 </table>
+{% else %}
+<div class="alert alert-info" role="alert">
+  No subscription products expiring soon.
+</div>
+{% endif %}
+
 <h5 class="pt-3">Remaining Subscriptions</h5>
+{% if remaining_subscriptions %}
 <table class="table table-hover">
   <tr>
     <th class="col-6">Product</th>
@@ -52,6 +60,11 @@
   </tr>
   {% endfor %}
 </table>
+{% else %}
+<div class="alert alert-info" role="alert">
+  No subscription products remaining.
+</div>
+{% endif %}
 <a class="btn btn-primary" href="{{ url_for('add') }}"
   ><i class="bi bi-plus"></i> Add Subscription</a
 >
