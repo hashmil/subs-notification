@@ -1,6 +1,7 @@
 import smtplib
 import configparser
 import sqlite3
+import os
 import queue
 import threading
 import ssl
@@ -16,7 +17,8 @@ config = configparser.ConfigParser()
 config.read("config.ini")
 
 # Database path
-database_path = "database/subscriptions.db"
+database_path = os.path.join(os.path.abspath(
+    os.path.dirname(__file__)), "database/subscriptions.db")
 
 # Create a queue to store database connections
 connection_pool = queue.Queue()
@@ -72,12 +74,12 @@ def run_threaded(function):
 
 def server_start_email():
     run_threaded(check_and_send_email)
-    print("🟠 Startup")
+    print("🚗 Startup")
 
 
 def scheduled_email():
     run_threaded(check_and_send_email)
-    print("🟢 Scheduled")
+    print("🤖 Scheduled")
 
 
 if __name__ == "__main__":

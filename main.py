@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import datetime
 import queue
@@ -11,7 +12,8 @@ app = Flask(__name__)
 connection_pool = queue.Queue()
 
 # Database path
-database_path = "database/subscriptions.db"
+database_path = os.path.join(os.path.abspath(
+    os.path.dirname(__file__)), "database/subscriptions.db")
 
 # Create a database if it doesnt exist
 
