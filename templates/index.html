@@ -5,13 +5,13 @@
 <table class="table table-hover">
   <tr>
     <th class="col-6">Product</th>
-    <th class="col-3">Expiry Date</th>
+    <th class="col-3 text-center"><i class="bi bi-clock"></i></th>
     <th class="col-3"></th>
   </tr>
   {% for subscription in expiring_subscriptions|sort(attribute='2') %}
   <tr>
     <td>{{ subscription[1] }}</td>
-    <td>{{ subscription[2] }}</td>
+    <td class="text-center">{{ subscription[2] }}</td>
     <td class="text-end">
       <a
         class="btn btn-outline-primary btn-sm"
@@ -77,13 +77,13 @@
 <table class="table table-hover">
   <tr>
     <th class="col-6">Product</th>
-    <th class="col-3">Expiry Date</th>
+    <th class="col-3 text-center"><i class="bi bi-clock"></i></th>
     <th class="col-3"></th>
   </tr>
   {% for subscription in remaining_subscriptions|sort(attribute='2') %}
   <tr>
     <td>{{ subscription[1] }}</td>
-    <td>{{ subscription[2] }}</td>
+    <td class="text-center">{{ subscription[2] }}</td>
     <td class="text-end">
       <a
         class="btn btn-outline-primary btn-sm"
