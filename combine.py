@@ -58,47 +58,49 @@ def create_database():
     conn.commit()
     conn.close()
 
-# def send_email(subject, body, recipient_email, sender_email, password):
-#     message = MIMEMultipart()
-#     message["From"] = sender_email
-#     message["To"] = recipient_email
-#     message["Subject"] = subject
-#     message.attach(MIMEText(body, "plain"))
+def send_email(subject, body, recipient_email, sender_email, password):
+    message = MIMEMultipart()
+    message["From"] = sender_email
+    message["To"] = recipient_email
+    message["Subject"] = subject
+    message.attach(MIMEText(body, "plain"))
 
-#     context = ssl.create_default_context()
-#     with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-#         server.login(sender_email, password)
-#         server.sendmail(sender_email, recipient_email, message.as_string())    
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+        server.login(sender_email, password)
+        server.sendmail(sender_email, recipient_email, message.as_string())    
 
-# def check_and_send_email():
-#     # Load the email configuration from the config.ini file
-#     config = ConfigParser()
-#     config.read("config.ini")
-#     sender_email = config.get("email", "sender_email")
-#     password = config.get("email", "sender_password")
-#     recipient_email = config.get("email", "recipient_email")
 
-#     with sqlite3.connect(database_path, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
-#         cursor = conn.cursor()
+def check_and_send_email(is_test_email=False):
+   # Use the config object passed in from the settings function
+    sender_email = config.get("email", "sender_email")
+    password = config.get("email", "sender_password")
+    recipient_email = config.get("email", "recipient_email")
+    scheduled_time = config.get("email", "scheduled_time")
 
-#         # Get the subscriptions expiring in the next 7 days
-#         expiring_subscriptions = cursor.execute(
-#             "SELECT * FROM subscriptions WHERE expiry_date BETWEEN date('now') AND date('now', '+7 days')").fetchall()
+    with sqlite3.connect(database_path, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+        cursor = conn.cursor()
 
-#         # Only send an email if there are any subscriptions expiring in the next 7 days
-#         if expiring_subscriptions:
-#             body = "The following subscriptions will be expiring within the next 7 days:\n\n"
-#             for subscription in expiring_subscriptions:
-#                 body += f"Product: {subscription[1]}\nExpiry Date: {subscription[2]}\n\n"
+        # Get the subscriptions expiring in the next 7 days
+        expiring_subscriptions = cursor.execute(
+            "SELECT * FROM subscriptions WHERE expiry_date BETWEEN date('now') AND date('now', '+7 days')").fetchall()
 
-#             subject = "Upcoming Subscription Expirations"
-#             send_email(subject, body, recipient_email, sender_email, password)
-#             print("📧 --> An email was sent with the list of upcoming expiring subscriptions.")
-#         else:
-#             print("❎ --> No expiring subscriptions found within the next 7 days.")
+        # Only send an email if there are any subscriptions expiring in the next 7 days
+        if expiring_subscriptions and (is_test_email or datetime.now().strftime('%H:%M') == scheduled_time):
+            body = "The following subscriptions will be expiring within the next 7 days:\n\n"
+            for subscription in expiring_subscriptions:
+                body += f"Product: {subscription[1]}\nExpiry Date: {subscription[2]}\n\n"
 
-#     # Reschedule the function to run again in 24 hours
-#     schedule.every().day.at("19:42").do(check_and_send_email)
+            subject = "Upcoming Subscription Expirations"
+            send_email(subject, body, recipient_email, sender_email, password)
+
+            # Log the time the email was sent
+            print(f"📧 --> An email was sent with the list of upcoming expiring subscriptions at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            return True
+        else:
+            print("🤷🏾❎ --> No expiring subscriptions found within the next 7 days.")
+            return False
+
 
 
 
@@ -108,8 +110,7 @@ def index():
     with sqlite3.connect(database_path, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         cursor = conn.cursor()
 
-        # Run the check_and_send_email function continuously
-        schedule.run_all()
+
 
         # Retrieve all subscriptions from the database
         cursor.execute("SELECT * FROM subscriptions")
@@ -218,37 +219,84 @@ def delete(id):
 def settings():
     # Load the email configuration from the config.ini file
     config = ConfigParser()
-    config.read("config.ini")
+    config.read(config_path)
+
+    success = None
+
+    if request.method == "POST":
+        # Get the updated email settings from the form data
+        sender_email = request.form["sender_email"]
+        sender_password = request.form["sender_password"]
+        recipient_email = request.form["recipient_email"]
+        scheduled_time = request.form["scheduled_time"]
+
+        # Update the email configuration in the config.ini file
+        config.set("email", "sender_email", sender_email)
+        config.set("email", "sender_password", sender_password)
+        config.set("email", "recipient_email", recipient_email)
+        config.set("email", "scheduled_time", scheduled_time)
+
+        with open(config_path, "w") as config_file:
+            config.write(config_file)
+
+        # Reschedule the check_and_send_email function to run at the new scheduled time
+        schedule.clear("check_and_send_email")
+        schedule.every().day.at(scheduled_time).do(check_and_send_email).tag("check_and_send_email")
+
+        success = "Email settings updated successfully."
+
+        # Render the settings.html template with a success message
+        return render_template("settings.html", sender_email=sender_email, sender_password=sender_password, recipient_email=recipient_email, scheduled_time=scheduled_time, success="Email settings updated successfully.")
+
+    else:
+        sender_email = config.get("email", "sender_email")
+        sender_password = config.get("email", "sender_password")
+        recipient_email = config.get("email", "recipient_email")
+        scheduled_time = config.get("email", "scheduled_time")
+
+        # Render the settings.html template
+        return render_template("settings.html", sender_email=sender_email, sender_password=sender_password, recipient_email=recipient_email, scheduled_time=scheduled_time)
+
+
+
+
+@app.route("/test-email", methods=["POST"])
+def test_email():
+    # Load the email configuration from the config.ini file
+    config.read(config_path)
     sender_email = config.get("email", "sender_email")
     password = config.get("email", "sender_password")
     recipient_email = config.get("email", "recipient_email")
-    send_time = config.get("email", "send_time")
+    scheduled_time = config.get("email", "scheduled_time")
 
-    if request.method == "POST":
-        # Update the email configuration in the config.ini file
-        sender_email = request.form["sender_email"]
-        password = request.form["sender_password"]
-        recipient_email = request.form["recipient_email"]
-        send_time = request.form["send_time"]
+    # Get the subscriptions expiring in the next 7 days
+    expiring_subscriptions = []
+    with sqlite3.connect(database_path, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
+        cursor = conn.cursor()
+        expiring_subscriptions = cursor.execute(
+            "SELECT * FROM subscriptions WHERE expiry_date BETWEEN date('now') AND date('now', '+7 days')").fetchall()
 
-        config.set("email", "sender_email", sender_email)
-        config.set("email", "sender_password", password)
-        config.set("email", "recipient_email", recipient_email)
-        config.set("email", "send_time", send_time)
+    # Only send a test email if there are any subscriptions expiring in the next 7 days
+    if not expiring_subscriptions:
+        message = "No expiring subscriptions found within the next 7 days."
+        return render_template("settings.html", message=message)
 
-        with open("config.ini", "w") as config_file:
-            config.write(config_file)
+    # Get the current date and time
+    current_time = datetime.now().strftime('%H:%M')
 
-        # Reschedule the email function to run at the new send time
-        schedule.clear()
-        schedule.every().day.at(send_time).do(check_and_send_email)
+    # Prepare the email body
+    body = "This is a test email to confirm that the email notification settings are working.\n\n"
+    body += "The following subscriptions will be expiring within the next 7 days:\n\n"
+    for subscription in expiring_subscriptions:
+        body += f"Product: {subscription[1]}\nExpiry Date: {subscription[2]}\n\n"
 
-        # Redirect the user back to the settings page
-        return redirect(url_for("settings"))
+    # Send a test email
+    subject = "Test Email Notification"
+    send_email(subject, body, recipient_email, sender_email, password)
 
-    return render_template("settings.html", sender_email=sender_email, password=password, recipient_email=recipient_email, send_time=send_time)
-
-
+    # Display a success message to the user
+    message = "Test email sent successfully."
+    return render_template("settings.html", message=message)
 
 
 def run_threaded(function):
@@ -261,6 +309,9 @@ if __name__ == "__main__":
 
     # Start the Flask app
     app.run(debug=True, host='0.0.0.0', port=3000)
+
+    # Run the check_and_send_email function continuously
+    schedule.run_all()
 
 
 
