@@ -1,8 +1,8 @@
 {% extends "layout.html" %} {% block content %}
 
-<h5 class="pt-5">Expiring Subscriptions</h5>
+<h5 class="pt-5 text-danger">Expiring Subscriptions</h5>
 {% if expiring_subscriptions %}
-<table class="table table-hover">
+<table class="table table-hover text-danger">
   <tr>
     <th class="col-6">Product</th>
     <th class="col-3 text-center"><i class="bi bi-clock"></i></th>
