@@ -89,7 +89,7 @@ The script checks the database for any subscriptions that are expiring within th
 
 #### Scheduling
 
-The script uses the `schedule` library to schedule the `check_and_send_email()` function to run once every day at 6:00 PM. This can be customized by changing the `schedule.every().day.at("18:00")` line in the script.
+The script uses the `schedule` library to schedule the `check_and_send_email()` function to run once every day at 6:00 PM. This can be customised by changing the `schedule.every().day.at("18:00")` line in the script.
 
 #### Database
 
