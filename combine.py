@@ -72,7 +72,7 @@ def send_email(subject, body, recipient_email, sender_email, password):
 
 
 def check_and_send_email(is_test_email=False):
-   # Use the config object passed in from the settings function
+    # Use the config object passed in from the settings function
     sender_email = config.get("email", "sender_email")
     password = config.get("email", "sender_password")
     recipient_email = config.get("email", "recipient_email")
@@ -86,7 +86,7 @@ def check_and_send_email(is_test_email=False):
             "SELECT * FROM subscriptions WHERE expiry_date BETWEEN date('now') AND date('now', '+7 days')").fetchall()
 
         # Only send an email if there are any subscriptions expiring in the next 7 days
-        if expiring_subscriptions and (is_test_email or datetime.now().strftime('%H:%M') == scheduled_time):
+        if expiring_subscriptions and (is_test_email or datetime.now().strftime('%H:%M') >= scheduled_time):
             body = "The following subscriptions will be expiring within the next 7 days:\n\n"
             for subscription in expiring_subscriptions:
                 body += f"Product: {subscription[1]}\nExpiry Date: {subscription[2]}\n\n"
@@ -96,26 +96,17 @@ def check_and_send_email(is_test_email=False):
 
             # Log the time the email was sent
             print(f"📧 --> An email was sent with the list of upcoming expiring subscriptions at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            
-            # Run any pending scheduled jobs
-            schedule.run_pending()
-            
             return True
         else:
             print("❎ --> No expiring subscriptions found within the next 7 days.")
+            print("Current time: ", datetime.now().strftime('%H:%M'))
             return False
-
-
-
-
 
 @app.route("/")
 def index():
     create_database()
     with sqlite3.connect(database_path, detect_types=sqlite3.PARSE_DECLTYPES) as conn:
         cursor = conn.cursor()
-
-
 
         # Retrieve all subscriptions from the database
         cursor.execute("SELECT * FROM subscriptions")
@@ -245,7 +236,7 @@ def settings():
             config.write(config_file)
 
         # Reschedule the check_and_send_email function to run at the new scheduled time
-        schedule.clear("check_and_send_email")
+        schedule.clear(tag="check_and_send_email")
         schedule.every().day.at(scheduled_time).do(check_and_send_email).tag("check_and_send_email")
 
         success = "Email settings updated successfully."
@@ -308,9 +299,20 @@ def run_threaded(function):
     thread.start()
 
 
-if __name__ == "__main__":
+def run_schedule():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
-    # Start the Flask app
+if __name__ == "__main__":
+    create_database()
+    scheduled_time = config.get("email", "scheduled_time")
+    schedule.every().day.at(scheduled_time).do(check_and_send_email).tag("check_and_send_email")
+    schedule.run_all()
+    t = threading.Thread(target=run_schedule)
+    t.start()
     app.run(debug=True, host='0.0.0.0', port=3000)
+
+
 
 
