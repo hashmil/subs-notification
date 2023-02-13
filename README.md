@@ -41,7 +41,6 @@ scheduled_time = 12:00
 - Select "Mail" and "Other (custom name)" from the dropdown menus
 - Enter a name for the app password (e.g. "Subscription Tracker") and click "Generate"
 - Use the generated password as the `sender_password` field in your `config.ini` file
--
 
 ### Usage
 
