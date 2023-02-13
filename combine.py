@@ -96,10 +96,15 @@ def check_and_send_email(is_test_email=False):
 
             # Log the time the email was sent
             print(f"📧 --> An email was sent with the list of upcoming expiring subscriptions at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            
+            # Run any pending scheduled jobs
+            schedule.run_pending()
+            
             return True
         else:
-            print("🤷🏾❎ --> No expiring subscriptions found within the next 7 days.")
+            print("❎ --> No expiring subscriptions found within the next 7 days.")
             return False
+
 
 
 
@@ -258,8 +263,6 @@ def settings():
         return render_template("settings.html", sender_email=sender_email, sender_password=sender_password, recipient_email=recipient_email, scheduled_time=scheduled_time)
 
 
-
-
 @app.route("/test-email", methods=["POST"])
 def test_email():
     # Load the email configuration from the config.ini file
@@ -309,14 +312,5 @@ if __name__ == "__main__":
 
     # Start the Flask app
     app.run(debug=True, host='0.0.0.0', port=3000)
-
-    # Run the check_and_send_email function continuously
-    schedule.run_all()
-
-
-
-
-
-
 
 
