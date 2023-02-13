@@ -1,0 +1,47 @@
+{% extends "base.html" %} {% block content %}
+<h1>Email Settings</h1>
+<form method="post">
+  <div class="form-group">
+    <label for="sender_email">Sender Email:</label>
+    <input
+      type="email"
+      class="form-control"
+      id="sender_email"
+      name="sender_email"
+      value="{{ sender_email }}"
+      required />
+  </div>
+  <div class="form-group">
+    <label for="sender_password">Sender Password:</label>
+    <input
+      type="password"
+      class="form-control"
+      id="sender_password"
+      name="sender_password"
+      value="{{ password }}"
+      required />
+  </div>
+  <div class="form-group">
+    <label for="recipient_email">Recipient Email:</label>
+    <input
+      type="email"
+      class="form-control"
+      id="recipient_email"
+      name="recipient_email"
+      value="{{ recipient_email }}"
+      required />
+  </div>
+  <div class="form-group">
+    <label for="send_time">Send Time:</label>
+    <input
+      type="time"
+      class="form-control"
+      id="send_time"
+      name="send_time"
+      value="{{ send_time }}"
+      required />
+  </div>
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="{{ url_for('test_email') }}" class="btn btn-secondary">Test Email</a>
+</form>
+{% endblock %}
