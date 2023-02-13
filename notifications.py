@@ -14,7 +14,23 @@ from email.mime.multipart import MIMEMultipart
 
 # Load configuration from config.ini file
 config = configparser.ConfigParser()
-config.read("config.ini")
+
+# Config path
+config_path = os.path.join(os.path.abspath(
+    os.path.dirname(__file__)), "config.ini")
+
+config.read(config_path)
+
+# Check for database directory, if not create one
+
+database_dir = os.path.join(os.path.abspath(
+    os.path.dirname(__file__)), 'database')
+
+if not os.path.exists(database_dir):
+    os.makedirs(database_dir)
+    print(f"Directory '{database_dir}' created successfully.")
+else:
+    print(f"Directory '{database_dir}' already exists.")
 
 # Database path
 database_path = os.path.join(os.path.abspath(

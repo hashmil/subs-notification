@@ -11,6 +11,18 @@ app = Flask(__name__)
 # Create a queue to store database connections
 connection_pool = queue.Queue()
 
+# Check for database directory, if not create one
+
+database_dir = os.path.join(os.path.abspath(
+    os.path.dirname(__file__)), 'database')
+
+if not os.path.exists(database_dir):
+    os.makedirs(database_dir)
+    print(f"Directory '{database_dir}' created successfully.")
+else:
+    print(f"Directory '{database_dir}' already exists.")
+
+
 # Database path
 database_path = os.path.join(os.path.abspath(
     os.path.dirname(__file__)), "database/subscriptions.db")
