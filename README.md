@@ -10,7 +10,7 @@ This is a subscription manager that allows you to keep track of your subscriptio
 git clone https://github.com/hashmil/subs-notification.git
 ```
 
-2.  Change into the `subs-notification` directory:
+2.  Change into the `subscription-tracker` directory:
 
 ```
 cd subscription-tracker
