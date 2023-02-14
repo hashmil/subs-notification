@@ -60,7 +60,7 @@ def create_database():
 
 def send_email(subject, body, recipient_email, sender_email, password):
     message = MIMEMultipart()
-    message["From"] = sender_email
+    message["From"] = f"Subscription Manager <{sender_email}>"
     message["To"] = recipient_email
     message["Subject"] = subject
     message.attach(MIMEText(body, "plain"))
